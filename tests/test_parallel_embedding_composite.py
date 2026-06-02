@@ -24,12 +24,76 @@ import dwave_networkx as dnx
 
 from dwave.system.testing import MockDWaveSampler
 from dwave.system.composites import ParallelEmbeddingComposite
+from dwave.system.composites.parallel_embeddings import _child_property_dfs
 from dwave.preprocessing import SpinReversalTransformComposite
 from minorminer.utils.parallel_embeddings import find_sublattice_embeddings
 from minorminer import find_embedding
 
 
 class TestParallelEmbeddings(unittest.TestCase):
+
+    def test_child_property_dfs(self):
+        # Test matches docstring example
+        sampler = dimod.TrackingComposite(
+            dimod.StructureComposite(MockDWaveSampler(), [0, 1], [(0, 1)])
+        )
+
+        self.assertEqual(
+            _child_property_dfs(sampler, property_name="j_range"), [-1.0, 1.0]
+        )
+
+    def test_auto_scale_embedded_bqm(self):
+        class SubstituteSampler(dimod.RandomSampler):
+            def sample(self, bqm, **kwargs):
+                sampleset = super().sample(bqm, **kwargs)
+                sampleset.info["bqm"] = bqm
+                return sampleset
+
+        max_num_emb = 3
+        # Ranges can be asymmetric, should be [negative, positive] non-zero
+        j_range = [-1e-6 - np.random.random(), 1e-6 + np.random.random()]
+        h_range = [-1e-6 - np.random.random(), 1e-6 + np.random.random()]
+        mock_sampler = MockDWaveSampler(
+            properties={"h_range": h_range, "j_range": j_range},
+            substitute_sampler=SubstituteSampler(),
+        )
+
+        source = nx.from_edgelist([(0, 1)])
+        solver = ParallelEmbeddingComposite(
+            mock_sampler,
+            source=source,
+            embedder_kwargs={"max_num_emb": max_num_emb},
+        )
+
+        bqms = [
+            dimod.BinaryQuadraticModel.from_ising(
+                {0: 0.0, 1: np.random.random()}, {(0, 1): 0.0}
+            )
+            for _ in range(max_num_emb)
+        ]
+        _, info = solver.sample_multiple(bqms)
+        linear_embedded_bqm = info["bqm"]
+        self.assertSetEqual(
+            set(round(v, 6) for v in linear_embedded_bqm.linear.values()),
+            {0, round(h_range[1], 6)},
+            f"All submitted non-negative fields should be 0 or rescaled to {h_range[1]}, but some elements deviate at 6 significant figures",
+        )
+
+        bqms = [
+            dimod.BinaryQuadraticModel.from_ising(
+                {0: 0.0, 1: 0.0}, {(0, 1): np.random.random()}
+            )
+            for _ in range(max_num_emb)
+        ]
+        _, info = solver.sample_multiple(bqms)
+        quadratic_embedded_bqm = info["bqm"]
+        self.assertTrue(
+            all(
+                round(v, 6) == round(j_range[1], 6)
+                for v in quadratic_embedded_bqm.quadratic.values()
+            ),
+            f"All submitted couplings should be rescaled to {j_range[1]}, but some elements deviate at 6 significant figures",
+        )
 
     def test_assertions(self):
         with self.assertRaises(ValueError):

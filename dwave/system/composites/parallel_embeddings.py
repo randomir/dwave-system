@@ -22,7 +22,7 @@ This allows multiple independent sampling processes to be conducted in
 parallel.
 """
 
-from typing import Optional
+from typing import Any
 
 import networkx as nx
 
@@ -33,6 +33,72 @@ from dwave.embedding.utils import adjacency_to_edges, target_to_source
 from minorminer.utils.parallel_embeddings import find_multiple_embeddings
 
 __all__ = ["ParallelEmbeddingComposite"]
+
+
+def _child_property_dfs(
+    sampler: dimod.Sampler,
+    property_name: str,
+    default: Any | None = None,
+    seen: set[dimod.Sampler] | None = None,
+) -> Any:
+    """Find a property from children
+
+    Find some property of child solvers by depth-first search.
+    Typically a QPU solver will be found at the root of the hierarchy,
+    and a property such as h_range will be returned, that is otherwise
+    not propagated through composition.
+
+    This function qualitatively mirrors dimod.child_structure_dfs and may
+    later be moved to that location and imported.
+
+    Args:
+        sampler:
+            A :ref:`index_dimod` sampler, or a composed sampler.
+
+        property_name:
+            A property to search and return.
+
+        default:
+            Default value for a property not found.
+
+        seen:
+            IDs of already checked child samplers.
+
+    Returns:
+        The discovered property, or None if not found.
+
+    Examples:
+
+    >>> sampler = dimod.TrackingComposite(
+    ...                 dimod.StructureComposite(
+    ...                 dimod.MockDWaveSampler(), [0, 1], [(0, 1)]))
+    >>> print(_child_property_dfs(sampler, property_name='j_range'))
+    [-1, 1]
+
+
+    """
+    seen = set() if seen is None else seen
+
+    if sampler not in seen:
+        try:
+            return sampler.properties[property_name]
+        except (AttributeError, KeyError):
+            # hasattr just tries to access anyway...
+            pass
+
+    seen.add(sampler)
+
+    for child in getattr(sampler, "children", ()):  # getattr handles samplers
+        if child in seen:
+            continue
+
+        try:
+            return _child_property_dfs(child, seen=seen, property_name=property_name)
+        except ValueError:
+            # tree has no child samplers
+            pass
+
+    return default
 
 
 class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sampler):
@@ -184,11 +250,13 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
         embedder_kwargs=None,
         one_to_iterable=False,
         child_structure_search=dimod.child_structure_dfs,
+        child_property_search=_child_property_dfs,
     ):
         self.parameters = child_sampler.parameters.copy()
         self.properties = properties = {"child_properties": child_sampler.properties}
         self.target_structure = child_structure_search(child_sampler)
-
+        self.h_range = child_property_search(child_sampler, property_name="h_range")
+        self.j_range = child_property_search(child_sampler, property_name="j_range")
         # dimod.Structured abstract base class automatically populates adjacency
         # and structure as mixins based on nodelist and edgelist
         if source is not None:
@@ -274,12 +342,12 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
     def sample(
         self,
         bqm: dimod.BinaryQuadraticModel,
-        chain_strength: Optional[float] = None,
+        chain_strength: float | None = None,
         **kwargs,
     ) -> dimod.SampleSet:
         """Sample from the specified binary quadratic model.
 
-        Sample sets are concatenated in the the same order as the ``embeddings``
+        Sample sets are concatenated in the same order as the ``embeddings``
         parameter used to instantiate the :class:`.ParallelEmbeddingComposite`
         class.
 
@@ -292,7 +360,9 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
 
             **kwargs:
                 Optional keyword arguments for the sampling method, specified
-                per embedding.
+                per embedding. Note that if :code:`auto_scale=True` (the default for
+                QPU-derived composites) then all bqms are independently scaled
+                to maximize the programmable range.
 
         Returns:
             :class:`~dimod.SampleSet`.
@@ -326,8 +396,8 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
     def sample_multiple(
         self,
         bqms: list[dimod.BinaryQuadraticModel],
-        chain_strengths: Optional[list] = None,
-        initial_states: Optional[list] = None,
+        chain_strengths: list | None = None,
+        initial_states: list | None = None,
         **kwargs,
     ) -> tuple[list[dimod.SampleSet], dict]:
         """Sample from the specified binary quadratic models.
@@ -354,6 +424,8 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
 
             **kwargs:
                 Optional keyword arguments for the sampling method.
+                Note that if :code:`auto_scale=True`, each embedded BQM is
+                independently scaled to maximize programmable range.
 
         Returns:
             Tuple: A list of :class:`~dimod.SampleSet`, one per embedding, and
@@ -363,7 +435,7 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
             See examples in the :class:`.ParallelEmbeddingComposite` class.
 
         See also:
-            The :meth:`.sample_multiple` method.
+            The :meth:`.sample` method.
         """
 
         # apply the embeddings to the given problem to tile it across the child sampler
@@ -381,14 +453,19 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
                 for u in chain
             }
 
+        auto_scale = kwargs.get("auto_scale", True)
         for embedding, bqm, chain_strength in zip(
             self.embeddings, bqms, chain_strengths
         ):
-            embedded_bqm.update(
-                dwave.embedding.embed_bqm(
-                    bqm, embedding, target_adjacency, chain_strength=chain_strength
-                )
+            new_embedded_bqm = dwave.embedding.embed_bqm(
+                bqm, embedding, target_adjacency, chain_strength=chain_strength
             )
+            if auto_scale:
+                # Rescale to common bounds:
+                new_embedded_bqm.normalize(
+                    bias_range=self.h_range, quadratic_range=self.j_range
+                )
+            embedded_bqm.update(new_embedded_bqm)
 
         # solve the problem on the child system
         tiled_response = self.child.sample(embedded_bqm, **kwargs)
@@ -402,6 +479,6 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
         return responses, tiled_response.info
 
     @property
-    def num_embeddings(self):
+    def num_embeddings(self) -> int:
         """Number of embeddings available for replicating the problem."""
         return len(self.embeddings)
