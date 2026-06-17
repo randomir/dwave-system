@@ -124,7 +124,10 @@ jobs:
 
       - run:
           name: install pyenv
+          environment:
+            HOMEBREW_NO_ASK: "1"
           command: |
+            brew update
             brew install pyenv
 
       - run:
