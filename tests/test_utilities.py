@@ -12,13 +12,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import os
 import unittest
 
 import numpy as np
-
-import dwave_networkx as dnx
-
+import dwave.graphs
 from dwave.cloud.testing import isolated_environ
 
 from dwave.system import (anneal_schedule_with_offset, common_working_graph,
@@ -29,7 +26,7 @@ from dwave.system.utilities import FeatureFlags
 class TestCommonWorkingGraph(unittest.TestCase):
     def test_single_tile(self):
 
-        G1 = dnx.chimera_graph(1)
+        G1 = dwave.graphs.chimera_graph(1)
         with self.assertWarns(DeprecationWarning):
             G = common_working_graph(G1, G1)
 
@@ -46,8 +43,8 @@ class TestCommonWorkingGraph(unittest.TestCase):
                 self.assertTrue((i, j) in G.edges() or (j, i) in G.edges())
 
     def test_c1_c2_tiles(self):
-        G1 = dnx.chimera_graph(1)
-        G2 = dnx.chimera_graph(2)
+        G1 = dwave.graphs.chimera_graph(1)
+        G2 = dwave.graphs.chimera_graph(2)
 
         with self.assertWarns(DeprecationWarning):
             G = common_working_graph(G1, G1)
@@ -55,9 +52,9 @@ class TestCommonWorkingGraph(unittest.TestCase):
         self.assertEqual(len(G), 8)
 
     def test_missing_node(self):
-        G1 = dnx.chimera_graph(1)
+        G1 = dwave.graphs.chimera_graph(1)
         G1.remove_node(2)
-        G2 = dnx.chimera_graph(2)
+        G2 = dwave.graphs.chimera_graph(2)
 
         with self.assertWarns(DeprecationWarning):
             G = common_working_graph(G1, G1)
@@ -67,7 +64,7 @@ class TestCommonWorkingGraph(unittest.TestCase):
 
     def test_sampler_adjacency(self):
         adj = {0: {1, 2}, 1: {2}, 2: {0, 1}}
-        G = dnx.chimera_graph(1)
+        G = dwave.graphs.chimera_graph(1)
 
         with self.assertWarns(DeprecationWarning):
             H = common_working_graph(adj, G)

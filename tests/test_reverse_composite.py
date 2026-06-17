@@ -16,12 +16,12 @@ import unittest
 
 import dimod
 import dimod.testing as dtest
-import dwave_networkx
+import dwave.graphs
 from dimod import ExactSolver
 
 from dwave.system import ReverseBatchStatesComposite, ReverseAdvanceComposite
 
-C4 = dwave_networkx.chimera_graph(4, 4, 4)
+C4 = dwave.graphs.chimera_graph(4, 4, 4)
 
 
 class MockReverseSampler(dimod.Sampler, dimod.Structured):

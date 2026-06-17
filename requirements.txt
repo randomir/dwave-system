@@ -1,11 +1,11 @@
-dimod==0.12.21
+dimod==0.12.22
 dwave-optimization==0.6.4
 dwave-preprocessing==0.6.11
-dwave-cloud-client==0.14.1
-dwave-networkx==0.8.14
+dwave-cloud-client==0.14.6
+dwave-graphs==1.0
 dwave-samplers==1.7.0
 homebase==1.0.1
-minorminer==0.2.20
+minorminer==0.2.22
 networkx~=3.0
 
 numpy==1.23.5;python_version<"3.11"  # for compatibility with scipy 1.9.3

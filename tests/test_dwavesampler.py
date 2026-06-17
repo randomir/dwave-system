@@ -21,7 +21,7 @@ import numpy as np
 from parameterized import parameterized
 
 import dimod
-import dwave_networkx as dnx
+import dwave.graphs
 
 from dwave.cloud import exceptions
 from dwave.cloud import computation
@@ -34,7 +34,7 @@ from dwave.system.warnings import EnergyScaleWarning, TooFewSamplesWarning
 from dwave.system.exceptions import FailoverCondition, RetryCondition
 
 
-C16 = dnx.chimera_graph(16)
+C16 = dwave.graphs.chimera_graph(16)
 
 # remove one node from C16 to simulate a not-fully-yielded system
 C16.remove_node(42)
@@ -277,7 +277,7 @@ class TestDWaveSampler(unittest.TestCase):
         self.assertEqual(set(frozenset(e) for e in G.edges), set(frozenset(e) for e in G.edges))
 
         # Create chimera graph for comparison
-        chimeraG = dnx.chimera_graph(4, node_list=sampler.nodelist, edge_list=sampler.edgelist)
+        chimeraG = dwave.graphs.chimera_graph(4, node_list=sampler.nodelist, edge_list=sampler.edgelist)
 
         self.assertEqual(set(G), set(chimeraG))
 
@@ -292,7 +292,7 @@ class TestDWaveSampler(unittest.TestCase):
         G = sampler.to_networkx_graph()
 
         # Create pegasus graph for comparison
-        pegasusG = dnx.pegasus_graph(4, node_list=sampler.nodelist, edge_list=sampler.edgelist)
+        pegasusG = dwave.graphs.pegasus_graph(4, node_list=sampler.nodelist, edge_list=sampler.edgelist)
 
         self.assertEqual(set(G), set(pegasusG))
 
@@ -307,7 +307,7 @@ class TestDWaveSampler(unittest.TestCase):
         G = sampler.to_networkx_graph()
 
         # Create zephyr graph for comparison
-        zephyrG = dnx.zephyr_graph(4, node_list=sampler.nodelist, edge_list=sampler.edgelist)
+        zephyrG = dwave.graphs.zephyr_graph(4, node_list=sampler.nodelist, edge_list=sampler.edgelist)
 
         self.assertEqual(set(G), set(zephyrG))
 

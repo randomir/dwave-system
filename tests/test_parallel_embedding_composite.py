@@ -20,7 +20,7 @@ import numpy as np
 import networkx as nx
 
 import dimod
-import dwave_networkx as dnx
+import dwave.graphs
 
 from dwave.system.testing import MockDWaveSampler
 from dwave.system.composites import ParallelEmbeddingComposite
@@ -191,7 +191,7 @@ class TestParallelEmbeddings(unittest.TestCase):
                 used_nodes.add(e[1])
                 embeddings.append({idx: (n,) for idx, n in enumerate(e)})
         sampler = ParallelEmbeddingComposite(mock_sampler, embeddings=embeddings)
-        source = tile = dnx.chimera_graph(1, 1, 4)  # A 1:1 mapping assumed
+        source = tile = dwave.graphs.chimera_graph(1, 1, 4)  # A 1:1 mapping assumed
         J = {e: -1 for e in tile.edges}  # A ferromagnet on the Chimera tile.
         embedder_kwargs = {"max_num_emb": None}
         sampler = ParallelEmbeddingComposite(
@@ -235,7 +235,7 @@ class TestTiling(unittest.TestCase):
         num_reads = 10
 
         t = 4
-        tile = dnx.chimera_graph(1, 1, t)
+        tile = dwave.graphs.chimera_graph(1, 1, t)
         source = nx.complete_graph(t)  # Embeds easily on a tile, chain length 2
 
         # By find_multiple_embedding (default)
@@ -290,7 +290,7 @@ class TestTiling(unittest.TestCase):
             and "shape" in mock_sampler.properties["topology"]
         )
         # sampler = TilingComposite(mock_sampler, 1, 1)
-        tile = dnx.chimera_graph(1)
+        tile = dwave.graphs.chimera_graph(1)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -309,7 +309,7 @@ class TestTiling(unittest.TestCase):
         m_sub = 2
         n_sub = 3
         # sampler = TilingComposite(mock_sampler, m_sub, n_sub)
-        tile = dnx.chimera_graph(m=m_sub, n=n_sub)
+        tile = dwave.graphs.chimera_graph(m=m_sub, n=n_sub)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -346,11 +346,11 @@ class TestTiling(unittest.TestCase):
         mock_sampler = MockDWaveSampler(
             broken_nodes=[8 * 3], topology_type="chimera", topology_shape=chimera_shape
         )
-        hardware_graph = dnx.chimera_graph(*chimera_shape)  # C4
+        hardware_graph = dwave.graphs.chimera_graph(*chimera_shape)  # C4
 
         # Tile with 2x2 cells:
         # sampler = TilingComposite(mock_sampler, 2, 2, 4)
-        tile = dnx.chimera_graph(2, 2, 4)
+        tile = dwave.graphs.chimera_graph(2, 2, 4)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -414,7 +414,7 @@ class TestTiling(unittest.TestCase):
         # where O: complete cell, X: incomplete cell
         broken_node_nice_coordinates = [(0, 0, 3, 0, 1), (2, 3, 3, 1, 3)]
         broken_node_linear_coordinates = [
-            dnx.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
+            dwave.graphs.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
             for coord in broken_node_nice_coordinates
         ]
         mock_sampler = MockDWaveSampler(
@@ -425,7 +425,7 @@ class TestTiling(unittest.TestCase):
         # Tile with 2x2 cells:
 
         # sampler = TilingComposite(mock_sampler, 2, 2, 4)  # Before!
-        tile = dnx.chimera_graph(2, 2, 4)
+        tile = dwave.graphs.chimera_graph(2, 2, 4)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -447,7 +447,7 @@ class TestTiling(unittest.TestCase):
 
         # For additional insight try:
         # import matplotlib.pyplot as plt
-        # from dwave_networkx import draw_parallel_embeddings
+        # from dwave.graphs import draw_parallel_embeddings
 
         # draw_parallel_embeddings(mock_sampler.to_networkx_graph(), sampler.embeddings)
         # plt.show()
@@ -475,7 +475,7 @@ class TestTiling(unittest.TestCase):
         broken_edges_nice_coordinates = [(0, 1, 0, 0, 0), (0, 2, 0, 0, 0)]
         broken_edges = [
             tuple(
-                dnx.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
+                dwave.graphs.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
                 for coord in broken_edges_nice_coordinates
             )
         ]
@@ -485,7 +485,7 @@ class TestTiling(unittest.TestCase):
             broken_edges=broken_edges,
         )
         # sampler = TilingComposite(mock_sampler, 2, 2, 4) Deprecated
-        tile = dnx.chimera_graph(2, 2, 4)
+        tile = dwave.graphs.chimera_graph(2, 2, 4)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -506,7 +506,7 @@ class TestTiling(unittest.TestCase):
         broken_edge_nice_coordinates = [(0, 0, 0, 0, 0), (0, 0, 0, 1, 0)]
         broken_edges = [
             tuple(
-                dnx.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
+                dwave.graphs.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
                 for coord in broken_edge_nice_coordinates
             )
         ]
@@ -516,7 +516,7 @@ class TestTiling(unittest.TestCase):
             broken_edges=broken_edges,
         )
         # sampler = TilingComposite(mock_sampler, 2, 2, 4)  # Deprecated
-        tile = dnx.chimera_graph(2, 2, 4)
+        tile = dwave.graphs.chimera_graph(2, 2, 4)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -534,7 +534,7 @@ class TestTiling(unittest.TestCase):
     def test_sample_ising(self):
         # sampler = TilingComposite(MockDWaveSampler(), 2, 2)  # Deprecated
         mock_sampler = MockDWaveSampler()
-        tile = dnx.chimera_graph(m=2, n=2)
+        tile = dwave.graphs.chimera_graph(m=2, n=2)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -572,7 +572,7 @@ class TestTiling(unittest.TestCase):
     def test_sample_qubo(self):
         # sampler = TilingComposite(MockDWaveSampler(), 2, 2)
         mock_sampler = MockDWaveSampler()
-        tile = dnx.chimera_graph(m=2, n=2)
+        tile = dwave.graphs.chimera_graph(m=2, n=2)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
@@ -608,7 +608,7 @@ class TestTiling(unittest.TestCase):
         mock_sampler = MockDWaveSampler()  # C4 structured sampler
 
         # sampler = TilingComposite(mock_sampler, 2, 2)  # Deprecated
-        tile = dnx.chimera_graph(m=2, n=2)
+        tile = dwave.graphs.chimera_graph(m=2, n=2)
         embedder = find_sublattice_embeddings
         embedder_kwargs = {
             "tile": tile,
