@@ -16,7 +16,7 @@ import unittest
 import random
 
 import dimod
-import dwave_networkx as dnx
+import dwave.graphs
 
 from dwave.system.testing import MockDWaveSampler
 from dwave.system.composites import TilingComposite
@@ -80,7 +80,7 @@ class TestTiling(unittest.TestCase):
         # OOOO
         # where O: complete cell, X: incomplete cell
         mock_sampler = MockDWaveSampler(broken_nodes=[8 * 3]) 
-        hardware_graph = dnx.chimera_graph(4)  # C4
+        hardware_graph = dwave.graphs.chimera_graph(4)  # C4
 
         # Tile with 2x2 cells:
         sampler = TilingComposite(mock_sampler, 2, 2, 4)
@@ -116,7 +116,7 @@ class TestTiling(unittest.TestCase):
         # where O: complete cell, X: incomplete cell
         broken_node_nice_coordinates = [(0,0,3,0,1), (2,3,3,1,3)]
         broken_node_linear_coordinates = [
-            dnx.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
+            dwave.graphs.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
             for coord in broken_node_nice_coordinates]
         mock_sampler = MockDWaveSampler(topology_type='pegasus',
                                         topology_shape=pegasus_shape,
@@ -139,7 +139,7 @@ class TestTiling(unittest.TestCase):
         #Can be refined to check exact positioning, but a lot of ugly code:
         #For visualization in coordinate scheme use:
         #for emb in sampler.embeddings:
-        #    print({key: dnx.pegasus_coordinates(pegasus_shape[0]).linear_to_nice(next(iter(val)))
+        #    print({key: dwave.graphs.pegasus_coordinates(pegasus_shape[0]).linear_to_nice(next(iter(val)))
         #           for key,val in emb.items()})
 
     def test_tile_around_edge_defects_pegasus(self):
@@ -149,7 +149,7 @@ class TestTiling(unittest.TestCase):
         # prevent tesselation of 2x2 blocks (12 tiles, equivalent to full yield)
         broken_edges_nice_coordinates = [(0,1,0,0,0), (0,2,0,0,0)]
         broken_edges = [tuple(
-            dnx.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
+            dwave.graphs.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
             for coord in broken_edges_nice_coordinates)]
         mock_sampler = MockDWaveSampler(topology_type='pegasus',
                                         topology_shape=pegasus_shape,
@@ -161,7 +161,7 @@ class TestTiling(unittest.TestCase):
         # tesselation of 2x2 blocks (otherwise 12 tiles, with edge defect 11)
         broken_edge_nice_coordinates = [(0,0,0,0,0), (0,0,0,1,0)]
         broken_edges = [tuple(
-            dnx.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
+            dwave.graphs.pegasus_coordinates(pegasus_shape[0]).nice_to_linear(coord)
             for coord in broken_edge_nice_coordinates)]
         mock_sampler = MockDWaveSampler(topology_type='pegasus',
                                         topology_shape=pegasus_shape,

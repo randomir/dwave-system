@@ -82,11 +82,11 @@ def common_working_graph(graph0, graph1):
         This example creates a graph that represents a part of a particular
         Advantage quantum computer's working graph.
 
-        >>> import dwave_networkx as dnx
+        >>> import dwave.graphs
         >>> from dwave.system import DWaveSampler, common_working_graph
         ...
         >>> sampler = DWaveSampler(solver={'topology__type': 'pegasus'})
-        >>> P3 = dnx.pegasus_graph(3)
+        >>> P3 = dwave.graphs.pegasus_graph(3)
         >>> p3_working_graph = common_working_graph(P3, sampler.adjacency)
 
     """

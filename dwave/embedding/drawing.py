@@ -14,7 +14,7 @@
 
 from math import ceil, sqrt
 
-from dwave_networkx import chimera_graph, draw_chimera
+from dwave.graphs import chimera_graph, draw_chimera
 
 __all__ = ['draw_chimera_bqm']
 
@@ -24,7 +24,7 @@ def draw_chimera_bqm(bqm, width=None, height=None):
     Args:
         bqm (:class:`~dimod.binary.BinaryQuadraticModel`):
             Binary quadratic model equivalent to a Chimera graph or subgraph
-            produced by :func:`~dwave_networkx.chimera_graph`, with nodes and
+            produced by :func:`~dwave.graphs.chimera_graph`, with nodes and
             edges labeled as integers.
         width (int, optional):
             Number of cells for the graph width. If ``width`` and ``height`` are

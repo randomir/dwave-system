@@ -19,7 +19,7 @@ import unittest.mock
 from parameterized import parameterized
 
 import dimod
-import dwave_networkx as dnx
+import dwave.graphs
 
 from dwave.cloud import exceptions
 from dwave.cloud import computation
@@ -66,7 +66,7 @@ class MockChimeraDWaveSampler(MockDWaveSampler):
 
         self.properties.update(topology=dict(shape=[4, 4, 4], type='chimera'))
 
-        G = dnx.chimera_graph(4, 4, 4)
+        G = dwave.graphs.chimera_graph(4, 4, 4)
 
         self.nodelist = list(G.nodes)
         self.edgelist = list(G.edges)
@@ -90,7 +90,7 @@ class MockPegasusDWaveSampler(MockDWaveSampler):
 
         self.properties.update(topology=dict(shape=[6], type='pegasus'))
 
-        G = dnx.pegasus_graph(6)
+        G = dwave.graphs.pegasus_graph(6)
 
         self.nodelist = list(G.nodes)
         self.edgelist = list(G.edges)

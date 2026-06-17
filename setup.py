@@ -25,15 +25,16 @@ exec(open(os.path.join(".", "dwave", "system", "package_info.py")).read())
 
 
 install_requires = ['dimod>=0.12.20,<0.14.0',
-                    'dwave-optimization>=0.1.0,<0.8',
                     'dwave-cloud-client>=0.12.0,<0.15.0',
-                    'dwave-networkx>=0.8.10',
+                    'dwave-graphs>=1,<2',
+                    'dwave-optimization>=0.1.0,<0.8',
                     'dwave-preprocessing>=0.5.0',
-                    'homebase>=1.0.0,<2.0.0',
-                    'minorminer>=0.2.19,<0.3.0',    # lower bound for parallel embedding support
-                    'numpy>=1.21.6',   # minimum inherited from minorminer
                     'dwave-samplers>=1.0.0',
-                    'scipy>=1.7.3',
+                    'homebase>=1.0.0,<2.0.0',
+                    'networkx>=3.2,<4',         # oldest that supports numpy 2
+                    'minorminer>=0.2.19,<0.3.0',    # lower bound for parallel embedding support
+                    'numpy>=2,<3',      # minimum inherited from minorminer
+                    'scipy>=1.13',      # oldest that supports numpy 2
                     ]
 
 python_requires = '>=3.10'

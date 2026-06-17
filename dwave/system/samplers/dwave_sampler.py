@@ -24,7 +24,7 @@ from collections import defaultdict
 from typing import Optional, Dict, TYPE_CHECKING
 
 import dimod
-import dwave_networkx as dnx
+import dwave.graphs
 from dimod.exceptions import BinaryQuadraticModelStructureError
 from dwave.cloud.client import Client
 from dwave.cloud.exceptions import (
@@ -43,10 +43,10 @@ __all__ = ['DWaveSampler', 'qpu_graph']
 
 
 def qpu_graph(topology_type, topology_shape, nodelist, edgelist):
-    """Convert node and edge lists to a ``dwave-networkx`` graph.
+    """Convert node and edge lists to a ``dwave-graphs`` graph.
 
     Creates a QPU :term:`topology` (Chimera, Pegasus or Zephyr) graph compatible
-    with Ocean software's :ref:`index_dnx`.
+    with Ocean software's :ref:`index_graphs`.
 
     Args:
         topology_type (string):
@@ -62,30 +62,30 @@ def qpu_graph(topology_type, topology_shape, nodelist, edgelist):
             nodes.
 
     See also:
-            :func:`dwave_networkx.chimera_graph`,
-            :func:`dwave_networkx.pegasus_graph`,
-            :func:`dwave_networkx.zephyr_graph` for descriptions of the lattice
+            :func:`~dwave.graphs.chimera_graph`,
+            :func:`~dwave.graphs.pegasus_graph`,
+            :func:`~dwave.graphs.zephyr_graph` for descriptions of the lattice
             parameters and indexing.
     """
 
     if topology_type == 'chimera':
         if not (1 <= len(topology_shape) <=3):
             raise ValueError('topology_shape is incompatible with a chimera lattice.')
-        G = dnx.chimera_graph(*topology_shape,
-                              node_list=nodelist,
-                              edge_list=edgelist)
+        G = dwave.graphs.chimera_graph(*topology_shape,
+                                       node_list=nodelist,
+                                       edge_list=edgelist)
     elif topology_type == 'pegasus':
         if len(topology_shape) != 1:
             raise ValueError('topology_shape is incompatible with a pegasus lattice.')
-        G = dnx.pegasus_graph(topology_shape[0],
-                                  node_list=nodelist,
-                                  edge_list=edgelist)
+        G = dwave.graphs.pegasus_graph(topology_shape[0],
+                                       node_list=nodelist,
+                                       edge_list=edgelist)
     elif topology_type == 'zephyr':
         if len(topology_shape) not in (1, 2):
             raise ValueError('topology_shape is incompatible with a zephyr lattice.')
-        G = dnx.zephyr_graph(*topology_shape,
-                                 node_list=nodelist,
-                                 edge_list=edgelist)
+        G = dwave.graphs.zephyr_graph(*topology_shape,
+                                      node_list=nodelist,
+                                      edge_list=edgelist)
     else:
         # Alternative could be to create a standard network graph and
         # issue a warning. Requires new dependency on networkx.

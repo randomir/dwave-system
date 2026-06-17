@@ -20,7 +20,7 @@ from collections.abc import Mapping
 from unittest import mock
 
 import dimod
-import dwave_networkx as dnx
+import dwave.graphs
 from parameterized import parameterized_class
 
 import dwave.embedding
@@ -327,7 +327,7 @@ class TestEmbeddingComposite(unittest.TestCase):
         EmbeddingComposite.return_embedding_default = False
 
     def test_warnings(self):
-        G = dnx.chimera_graph(12)
+        G = dwave.graphs.chimera_graph(12)
 
         sampler = EmbeddingComposite(
             dimod.StructureComposite(dimod.RandomSampler(), G.nodes, G.edges))
@@ -340,7 +340,7 @@ class TestEmbeddingComposite(unittest.TestCase):
         self.assertIn('warnings', ss.info)
 
     def test_warning_chain_strength(self):
-        G = dnx.chimera_graph(12)
+        G = dwave.graphs.chimera_graph(12)
 
         sampler = EmbeddingComposite(
             dimod.StructureComposite(dimod.RandomSampler(), G.nodes, G.edges))
@@ -358,7 +358,7 @@ class TestEmbeddingComposite(unittest.TestCase):
         self.assertEqual(count, 1)
 
     def test_warnings_chain_strength_len1(self):
-        G = dnx.chimera_graph(12)
+        G = dwave.graphs.chimera_graph(12)
 
         sampler = EmbeddingComposite(
             dimod.StructureComposite(dimod.RandomSampler(), G.nodes, G.edges))
@@ -396,7 +396,7 @@ class TestEmbeddingComposite(unittest.TestCase):
         self.assertCountEqual(interactions[0], ('b','c'))
 
     def test_warnings_as_class_variable(self):
-        G = dnx.chimera_graph(12)
+        G = dwave.graphs.chimera_graph(12)
 
         sampler = EmbeddingComposite(
             dimod.StructureComposite(dimod.RandomSampler(), G.nodes, G.edges))
@@ -484,7 +484,7 @@ class TestFixedEmbeddingComposite(unittest.TestCase):
         self.assertEqual(mock_unembed.call_count, 1)
 
     def test_keyer(self):
-        C4 = dnx.chimera_graph(4)
+        C4 = dwave.graphs.chimera_graph(4)
         nodelist = sorted(C4.nodes)
         edgelist = sorted(sorted(edge) for edge in C4.edges)
 
@@ -507,7 +507,7 @@ class TestFixedEmbeddingComposite(unittest.TestCase):
         S = {(0, 1): 1, (0, 2): 1, (0, 3): 1, (1, 2): 1, (1, 3): 1, (2, 3): 1}
         bqm = dimod.BinaryQuadraticModel.from_qubo(Q)
 
-        G = dnx.chimera_graph(4)
+        G = dwave.graphs.chimera_graph(4)
         sampler = dimod.StructureComposite(dimod.ExactSolver(), G.nodes, G.edges)
         embedding = {0: [55], 1: [48], 2: [50, 53], 3: [52, 51]}
         composite = FixedEmbeddingComposite(sampler, embedding)
@@ -516,7 +516,7 @@ class TestFixedEmbeddingComposite(unittest.TestCase):
         composite.sample(bqm, chain_break_method=cbm).resolve()
 
     def test_subgraph_relabeling(self):
-        Z12 = dnx.zephyr_graph(12)
+        Z12 = dwave.graphs.zephyr_graph(12)
         nodelist = sorted(Z12.nodes)
         edgelist = sorted(sorted(edge) for edge in Z12.edges)
 
@@ -535,7 +535,7 @@ class TestFixedEmbeddingComposite(unittest.TestCase):
 
     def test_relabeling_performance_gain(self):
         with self.subTest('native subgraph Z6 -> Z6'):
-            graph = dnx.zephyr_graph(6)
+            graph = dwave.graphs.zephyr_graph(6)
             nodelist = sorted(graph.nodes)
             edgelist = sorted(sorted(edge) for edge in graph.edges)
 

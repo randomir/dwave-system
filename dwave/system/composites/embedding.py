@@ -576,10 +576,10 @@ class FixedEmbeddingComposite(LazyFixedEmbeddingComposite):
         with a Chimera unit-cell structure.
 
         >>> import dimod
-        >>> import dwave_networkx as dnx
+        >>> import dwave.graphs
         >>> from dwave.system import FixedEmbeddingComposite
         ...
-        >>> c1 = dnx.chimera_graph(1)
+        >>> c1 = dwave.graphs.chimera_graph(1)
         >>> embedding = {'a': [0, 4], 'b': [1], 'c': [5]}
         >>> structured_sampler = dimod.StructureComposite(dimod.ExactSolver(),
         ...                                               c1.nodes, c1.edges)

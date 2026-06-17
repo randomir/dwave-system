@@ -12,7 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import dwave_networkx as dnx
+import dwave.graphs
 
 
 def coupling_groups(hardware_graph):
@@ -40,7 +40,7 @@ def coupling_groups(hardware_graph):
     if hardware_graph.graph.get('family') != 'zephyr':
         return
 
-    relabel = dnx.zephyr_coordinates(hardware_graph.graph['rows']).linear_to_zephyr
+    relabel = dwave.graphs.zephyr_coordinates(hardware_graph.graph['rows']).linear_to_zephyr
 
     for q in hardware_graph:
         groups = [], []

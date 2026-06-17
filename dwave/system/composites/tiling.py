@@ -30,7 +30,7 @@ for explanations of technical terms in descriptions of Ocean tools.
 import warnings
 
 import dimod
-import dwave_networkx as dnx
+import dwave.graphs
 
 import dwave.embedding
 
@@ -55,17 +55,17 @@ class TilingComposite(dimod.Composite, dimod.Structured, dimod.Sampler):
     Notation *PN* referes to a Pegasus graph consisting of a 3x(N-1)x(N-1) grid
     of cells, where each unit cell is a bipartite graph with shore of size t,
     supplemented with odd couplers (see ``nice_coordinate`` definition in
-    the :func:`~dwave_networkx.pegasus_graph` function). The
+    the :func:`~dwave.graphs.pegasus_graph` function). The
     Advantage QPU supports a P16 Pegasus graph: its qubits may be mapped to a
     3x15x15 matrix of unit cells, each of 8 qubits. This code supports tiling of
     Chimera-structured problems, with an option of additional odd-couplers,
-    onto Pegasus. See also the :func:`~dwave_networkx.pegasus_graph` function.
+    onto Pegasus. See also the :func:`~dwave.graphs.pegasus_graph` function.
 
     Notation *CN* refers to a Chimera graph consisting of an NxN grid of unit
     cells, where each unit cell is a bipartite graph with shores of size t.
     (An earlier quantum computer, the D-Wave 2000Q, supported a C16 Chimera 
     graph: its 2048 qubits were logically mapped into a 16x16 matrix of unit 
-    cells of 8 qubits (t=4). See also the :func:`~dwave_networkx.chimera_graph` 
+    cells of 8 qubits (t=4). See also the :func:`~dwave.graphs.chimera_graph` 
     function.)
 
     A problem that can be minor-embedded in a single chimera unit cell, for
@@ -139,7 +139,7 @@ class TilingComposite(dimod.Composite, dimod.Structured, dimod.Sampler):
         self.parameters = sampler.parameters.copy()
         self.properties = properties = {'child_properties': sampler.properties}
 
-        tile = dnx.chimera_graph(sub_m, sub_n, t)
+        tile = dwave.graphs.chimera_graph(sub_m, sub_n, t)
         self.nodelist = sorted(tile.nodes)
         self.edgelist = sorted(sorted(edge) for edge in tile.edges)
         # dimod.Structured abstract base class automatically populates adjacency
@@ -191,19 +191,19 @@ class TilingComposite(dimod.Composite, dimod.Structured, dimod.Sampler):
 
         if num_sublattices==1:
             # Chimera defaults. Appended coordinates (treat as first and only sublattice)
-            system = dnx.chimera_graph(m, n, t,
-                                       node_list=sampler.structure.nodelist,
-                                       edge_list=sampler.structure.edgelist)
+            system = dwave.graphs.chimera_graph(m, n, t,
+                                                node_list=sampler.structure.nodelist,
+                                                edge_list=sampler.structure.edgelist)
 
             c2i = {(0, *chimera_index) : linear_index
                    for (linear_index, chimera_index)
                    in system.nodes(data='chimera_index')}
         else:
-            system = dnx.pegasus_graph(m,
-                                       node_list=sampler.structure.nodelist,
-                                       edge_list=sampler.structure.edgelist)
+            system = dwave.graphs.pegasus_graph(m,
+                                                node_list=sampler.structure.nodelist,
+                                                edge_list=sampler.structure.edgelist)
             # Vector specification in terms of nice coordinates:
-            c2i = {dnx.pegasus_coordinates(m+1).linear_to_nice(linear_index):
+            c2i = {dwave.graphs.pegasus_coordinates(m+1).linear_to_nice(linear_index):
                    linear_index for linear_index in system.nodes()}
 
         sub_c2i = {chimera_index: linear_index for (linear_index, chimera_index)

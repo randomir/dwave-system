@@ -198,7 +198,7 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
 
         >>> from dwave.system import DWaveSampler
         >>> from dwave.system import ParallelEmbeddingComposite
-        >>> from dwave_networkx import chimera_graph
+        >>> from dwave.graphs import chimera_graph
         >>> from minorminer.utils.parallel_embeddings import find_sublattice_embeddings
         ...
         >>> source = tile = chimera_graph(1, 1, 4)  # A 1:1 mapping assumed
@@ -217,7 +217,7 @@ class ParallelEmbeddingComposite(dimod.Composite, dimod.Structured, dimod.Sample
 
     See also:
 
-        The :func:`~dwave_networkx.drawing.draw_parallel_embeddings` function to
+        The :func:`~dwave.graphs.drawing.draw_parallel_embeddings` function to
         visualize found embeddings.
 
     """
